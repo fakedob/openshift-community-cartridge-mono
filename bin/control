@@ -3,16 +3,23 @@
 source $OPENSHIFT_CARTRIDGE_SDK_BASH
 MONO_PID_FILE=$OPENSHIFT_MONO_DIR/run/mono.pid
 
-function apache() {
-    client_message "$2 vNext Server"
+function start() {
+    client_message "$1 vNext Server"
     nohup dnx $OPENSHIFT_REPO_DIR kestrel |& /usr/bin/logshifter -tag mono &
     echo $! > $OPENSHIFT_MONO_DIR/run/mono.pid
 }
 
 function stop() {
-    client_message "$2 vNext Server"
+    client_message "$1 vNext Server"
     mono_pid=$(cat  $OPENSHIFT_MONO_DIR/run/mono.pid)
     kill -9 $mono_pid
+}
+
+function restart() {
+    client_message "$1 vNext Server"
+    stop
+    start
+    return $?
 }
 
 function configtest() {
@@ -47,9 +54,9 @@ function build() {
 }
 
 case "$1" in
-  start)           apache start "Starting" ;;
+  start)           start "Starting" ;;
   stop)            stop ;;
-  restart)         apache restart "Restarting" ;;
+  restart)         restart "Restarting" ;;
   reload|graceful) apache graceful "Restarting gracefully" ;;
   status)          status ;;
   configtest)      configtest ;;
